@@ -1,0 +1,45 @@
+{
+  "name": "tezos-nft-market-pressure",
+  "version": "1.0.0",
+  "description": "Data pipeline for analyzing Tezos NFT market pressure using TzKT API",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "sync": "node dist/index.js sync",
+    "sync-xtz": "node dist/index.js sync-xtz",
+    "sync-all": "node dist/index.js sync-all",
+    "sync-week": "node dist/index.js sync-week",
+    "analyze": "node dist/index.js analyze",
+    "full": "node dist/index.js full",
+    "discover": "node dist/index.js discover",
+    "resolve": "node dist/index.js resolve",
+    "classify": "node dist/index.js classify",
+    "network": "node dist/index.js network",
+    "status": "node dist/index.js status",
+    "start": "node dist/index.js full",
+    "dev": "node dist/server.js",
+    "serve": "node dist/server.js",
+    "dev:sync": "ts-node src/index.ts sync",
+    "dev:analyze": "ts-node src/index.ts analyze",
+    "dev:sync-xtz": "ts-node src/index.ts sync-xtz"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "p-limit": "^3.1.0",
+    "papaparse": "^5.4.1",
+    "sql.js": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.10.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/sql.js": "^1.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
