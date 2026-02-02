@@ -3,6 +3,9 @@
  * Configuration for Tezos NFT Market Pressure Pipeline
  * Marketplace contracts, entrypoints, CEX addresses, and pipeline settings
  */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DEFAULT_CONFIG = exports.DEFAULT_MARKETPLACES = exports.KNOWN_BRIDGE_ADDRESSES = exports.ETHERLINK_BRIDGE_CONTRACTS = exports.KNOWN_CEX_ADDRESSES = void 0;
 exports.isBridgeAddress = isBridgeAddress;
@@ -15,6 +18,12 @@ exports.getAllListEntrypoints = getAllListEntrypoints;
 exports.getAllAcceptOfferEntrypoints = getAllAcceptOfferEntrypoints;
 exports.getAllMarketplaceAddresses = getAllMarketplaceAddresses;
 exports.findMarketplace = findMarketplace;
+const path_1 = __importDefault(require("path"));
+// Resolve DB and output paths relative to nft-pipeline root so server, CLI,
+// and background sync always use the same DB regardless of process cwd.
+const PIPELINE_ROOT = path_1.default.resolve(__dirname, '..');
+const DEFAULT_DB_PATH = path_1.default.join(PIPELINE_ROOT, 'data', 'pipeline.db');
+const DEFAULT_OUTPUT_DIR = path_1.default.join(PIPELINE_ROOT, 'out');
 // Known Tezos CEX deposit/withdrawal addresses
 // Sources: TzKT labels, exchange documentation, community knowledge
 exports.KNOWN_CEX_ADDRESSES = [
@@ -165,8 +174,8 @@ exports.DEFAULT_CONFIG = {
     retryBaseDelayMs: 1000,
     marketplaces: exports.DEFAULT_MARKETPLACES,
     cexAddresses: exports.KNOWN_CEX_ADDRESSES,
-    outputDir: './out',
-    dbPath: './data/pipeline.db'
+    outputDir: DEFAULT_OUTPUT_DIR,
+    dbPath: DEFAULT_DB_PATH
 };
 /**
  * Check if an address is a known CEX

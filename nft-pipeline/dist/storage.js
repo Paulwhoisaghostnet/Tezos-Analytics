@@ -1011,6 +1011,27 @@ class Storage {
     updateTransactionCategory(id, category) {
         this.run('UPDATE all_transactions SET tx_category = ? WHERE id = ?', [category, id]);
     }
+    /**
+     * Backfill raw_transactions from all_transactions for marketplace txs
+     * (so analyze can run from comprehensive sync data without re-fetching).
+     * Does not delete or overwrite existing raw_transactions.
+     */
+    backfillRawTransactionsFromAll(marketplaceAddresses, entrypoints) {
+        if (marketplaceAddresses.length === 0 || entrypoints.length === 0)
+            return 0;
+        const before = this.getRawTransactionCount();
+        const targetPl = marketplaceAddresses.map(() => '?').join(',');
+        const epPl = entrypoints.map(() => '?').join(',');
+        this.run(`
+      INSERT OR IGNORE INTO raw_transactions
+        (id, hash, level, timestamp, sender, target, amount, entrypoint, parameters, status, has_internals)
+      SELECT id, hash, level, timestamp, sender, target, amount, entrypoint, parameters, status, COALESCE(is_internal, 0)
+      FROM all_transactions
+      WHERE target IN (${targetPl}) AND entrypoint IN (${epPl}) AND target IS NOT NULL
+    `, [...marketplaceAddresses, ...entrypoints]);
+        this.save();
+        return this.getRawTransactionCount() - before;
+    }
     // ==================== XTZ FLOWS ====================
     insertXtzFlow(row) {
         this.run(`

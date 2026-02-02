@@ -6,7 +6,15 @@
  * 2. ANALYZE: Derive insights from local data (no API calls, instant re-runs)
  */
 
-import { DEFAULT_CONFIG, getTimeWindow, PipelineConfig } from './config';
+import {
+  DEFAULT_CONFIG,
+  getTimeWindow,
+  PipelineConfig,
+  getAllMarketplaceAddresses,
+  getAllBuyEntrypoints,
+  getAllListEntrypoints,
+  getAllAcceptOfferEntrypoints
+} from './config';
 import { Storage } from './storage';
 import { 
   syncAllData, 
@@ -70,20 +78,36 @@ async function runAnalyze(config: PipelineConfig = DEFAULT_CONFIG): Promise<void
   const window = getTimeWindow(config);
   
   try {
-    const status = getSyncStatus(storage);
+    let status = getSyncStatus(storage);
     console.log('\nLocal database status:');
     console.log(`  Last sync: ${status.lastSync || 'never'}`);
     console.log(`  Transactions: ${status.transactions}`);
     console.log(`  Token transfers: ${status.transfers}`);
     console.log(`  Balances: ${status.balances}`);
     console.log(`  XTZ transfers: ${status.xtzTransfers}`);
-    
+    const allTxCount = storage.getAllTransactionsCount();
+    if (allTxCount > 0) {
+      console.log(`  All transactions (comprehensive): ${allTxCount}`);
+    }
+
+    if (status.transactions === 0 && allTxCount > 0) {
+      console.log('\nBackfilling raw_transactions from all_transactions (no re-sync)...');
+      const marketplaceAddresses = getAllMarketplaceAddresses(config);
+      const buyEps = getAllBuyEntrypoints(config);
+      const listEps = getAllListEntrypoints(config);
+      const acceptEps = getAllAcceptOfferEntrypoints(config);
+      const allEntrypoints = [...new Set([...buyEps, ...listEps, ...acceptEps])];
+      const inserted = storage.backfillRawTransactionsFromAll(marketplaceAddresses, allEntrypoints);
+      console.log(`  Backfilled ${inserted} marketplace transactions into raw_transactions.`);
+      status = getSyncStatus(storage);
+    }
+
     if (status.transactions === 0) {
-      console.log('\nNo data in local database. Run sync first!');
-      console.log('  npm run sync');
+      console.log('\nNo data in local database. Run sync or sync-week first!');
+      console.log('  npm run sync-week week1');
       return;
     }
-    
+
     console.log('\nClearing previous derived data...');
     storage.clearDerived();
     
@@ -284,7 +308,7 @@ async function runSyncAll(config: PipelineConfig = DEFAULT_CONFIG): Promise<void
 async function runSyncWeek(config: PipelineConfig = DEFAULT_CONFIG): Promise<void> {
   const args = process.argv.slice(2);
   const weekArg = args[1]; // e.g., 'week1', 'status', 'all'
-  
+
   const storage = await Storage.create(config.dbPath);
   
   try {

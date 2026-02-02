@@ -358,6 +358,12 @@ export declare class Storage {
     getMaxAllTransactionId(): number;
     getAllTransactionsByCategory(category: string): AllTransactionRow[];
     updateTransactionCategory(id: number, category: string): void;
+    /**
+     * Backfill raw_transactions from all_transactions for marketplace txs
+     * (so analyze can run from comprehensive sync data without re-fetching).
+     * Does not delete or overwrite existing raw_transactions.
+     */
+    backfillRawTransactionsFromAll(marketplaceAddresses: string[], entrypoints: string[]): number;
     insertXtzFlow(row: XtzFlowRow): void;
     getXtzFlowsCount(): number;
     getMaxXtzFlowId(): number;

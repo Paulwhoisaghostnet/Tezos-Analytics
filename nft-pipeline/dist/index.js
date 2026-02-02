@@ -99,16 +99,31 @@ async function runAnalyze(config = config_1.DEFAULT_CONFIG) {
     const storage = await storage_1.Storage.create(config.dbPath);
     const window = (0, config_1.getTimeWindow)(config);
     try {
-        const status = (0, sync_1.getSyncStatus)(storage);
+        let status = (0, sync_1.getSyncStatus)(storage);
         console.log('\nLocal database status:');
         console.log(`  Last sync: ${status.lastSync || 'never'}`);
         console.log(`  Transactions: ${status.transactions}`);
         console.log(`  Token transfers: ${status.transfers}`);
         console.log(`  Balances: ${status.balances}`);
         console.log(`  XTZ transfers: ${status.xtzTransfers}`);
+        const allTxCount = storage.getAllTransactionsCount();
+        if (allTxCount > 0) {
+            console.log(`  All transactions (comprehensive): ${allTxCount}`);
+        }
+        if (status.transactions === 0 && allTxCount > 0) {
+            console.log('\nBackfilling raw_transactions from all_transactions (no re-sync)...');
+            const marketplaceAddresses = (0, config_1.getAllMarketplaceAddresses)(config);
+            const buyEps = (0, config_1.getAllBuyEntrypoints)(config);
+            const listEps = (0, config_1.getAllListEntrypoints)(config);
+            const acceptEps = (0, config_1.getAllAcceptOfferEntrypoints)(config);
+            const allEntrypoints = [...new Set([...buyEps, ...listEps, ...acceptEps])];
+            const inserted = storage.backfillRawTransactionsFromAll(marketplaceAddresses, allEntrypoints);
+            console.log(`  Backfilled ${inserted} marketplace transactions into raw_transactions.`);
+            status = (0, sync_1.getSyncStatus)(storage);
+        }
         if (status.transactions === 0) {
-            console.log('\nNo data in local database. Run sync first!');
-            console.log('  npm run sync');
+            console.log('\nNo data in local database. Run sync or sync-week first!');
+            console.log('  npm run sync-week week1');
             return;
         }
         console.log('\nClearing previous derived data...');

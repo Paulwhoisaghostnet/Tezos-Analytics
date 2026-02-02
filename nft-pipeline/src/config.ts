@@ -3,6 +3,14 @@
  * Marketplace contracts, entrypoints, CEX addresses, and pipeline settings
  */
 
+import path from 'path';
+
+// Resolve DB and output paths relative to nft-pipeline root so server, CLI,
+// and background sync always use the same DB regardless of process cwd.
+const PIPELINE_ROOT = path.resolve(__dirname, '..');
+const DEFAULT_DB_PATH = path.join(PIPELINE_ROOT, 'data', 'pipeline.db');
+const DEFAULT_OUTPUT_DIR = path.join(PIPELINE_ROOT, 'out');
+
 export interface MarketplaceEntrypoints {
   buy: string[];
   list: string[];
@@ -203,8 +211,8 @@ export const DEFAULT_CONFIG: PipelineConfig = {
   retryBaseDelayMs: 1000,
   marketplaces: DEFAULT_MARKETPLACES,
   cexAddresses: KNOWN_CEX_ADDRESSES,
-  outputDir: './out',
-  dbPath: './data/pipeline.db'
+  outputDir: DEFAULT_OUTPUT_DIR,
+  dbPath: DEFAULT_DB_PATH
 };
 
 /**
